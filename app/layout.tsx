@@ -1,10 +1,12 @@
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter';
 import type { Metadata } from 'next';
+import { Container } from '@mui/material';
 import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import theme from '@/theme';
 import InitColorSchemeScript from '@mui/material/InitColorSchemeScript';
 import ModeSwitch from '@/components/mode-switch';
+import MainHeader from '@/components/main-header/main-header';
 
 /*
 const geistSans = Geist({
@@ -36,7 +38,10 @@ export default function RootLayout({
           <AppRouterCacheProvider>
             <ThemeProvider theme={theme}>
               <CssBaseline />
-              {children}
+                <MainHeader />
+                <Container>
+                  {children}
+                </Container>
               <ModeSwitch />
             </ThemeProvider>
         </AppRouterCacheProvider>
