@@ -16,15 +16,16 @@ export default function Quests({ quests }: QuestList){
             <Grid size={4}>
                 <Paper>
                     <Suspense fallback={<Typography variant="body2">Loading Quests...</Typography>}>
-                    <Button onClick={() => router.push("/quest/add")} variant="contained" color="primary" fullWidth>
+                    <Button onClick={() => router.push("/quest/")} variant="contained" color="primary" fullWidth>
                         Create New Quest
                     </Button>
                         <List>
-                            {quests.map(({ _id, title, description, status}: Quest) => (
-                                <ListItem key={_id}>
-                                    <ListItemText onClick={() => setSelectedItem({ _id, title, description, status })}
-                                        primary={title}
-                                        secondary={description}
+                            {quests.map((quest) => (
+                                <ListItem key={quest._id}>
+                                    <ListItemText 
+                                        onClick={() => setSelectedItem(quest)} 
+                                        primary={quest.questName} 
+                                        secondary={quest.description} 
                                     />
                                 </ListItem>
                             ))}

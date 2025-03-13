@@ -1,18 +1,23 @@
 'use client'
 import { FormEvent, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Accordion, AccordionDetails, AccordionSummary, Box, Button, TextField, Typography, Select, MenuItem, FormControl, 
-  InputLabel } from "@mui/material";
+  InputLabel, Alert } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import dayjs, { Dayjs } from "dayjs";
 
-export default function AddQuest(){
+export default function QuestForm(){
+  const router = useRouter();
+  const [successMessage, setSuccessMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+
     const [enteredValues, setEnteredValues] = useState({
         questName: '',
-        questDesc: '',
-        questStatus: "",
+        description: '',
+        status: "",
         difficulty: "",
         deadlineType: "",
         deadline: null as Dayjs | null,
@@ -22,11 +27,6 @@ export default function AddQuest(){
         location: '',
         partyMembers: ''
       });
-
-    function submitQuest(event: FormEvent<HTMLFormElement>){
-      event.preventDefault();
-      console.log(enteredValues);
-    }
 
     function handleInputChange(identifier: string, value: any) {
       setEnteredValues((prevValues) => ({
@@ -52,12 +52,58 @@ export default function AddQuest(){
       });
     };
 
+    const handleSubmit = async (event: React.FormEvent) => {
+      event.preventDefault();
+      setSuccessMessage("");
+      setErrorMessage("");
+  
+      if (!enteredValues.questName || !enteredValues.description) {
+        setErrorMessage("Quest Name and Description are required.");
+        return;
+      }
+  
+      try {
+        const res = await fetch("/api/quests", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ...enteredValues, deadline: enteredValues.deadline?.toISOString() || null }),
+        });
+  
+        const data = await res.json();
+        if (res.ok) {
+          setSuccessMessage("Quest created successfully!");
+          setEnteredValues({
+            questName: "",
+            description: "",
+            status: "",
+            difficulty: "",
+            deadlineType: "",
+            deadline: null,
+            questGiver: "",
+            questType: "",
+            reward: "",
+            partyMembers: "",
+            location: ""
+          });
+
+          router.push("/");
+        } else {
+          setErrorMessage(data.message || "Failed to create quest.");
+        }
+      } catch (error) {
+        setErrorMessage("Something went wrong. Please try again.");
+      }
+    };
+
 
     return(
       <>
+      {successMessage && <Alert severity="success">{successMessage}</Alert>}
+      {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
+      
       <Typography variant="h3" gutterBottom> Create a New Quest </Typography>
         <LocalizationProvider dateAdapter={AdapterDayjs}>
-          <form onSubmit={submitQuest}>
+          <form onSubmit={handleSubmit}>
             <Box sx={{mb: 2}}>
               <Typography variant="h5">Basic Details (Required)</Typography>
               <TextField 
@@ -79,10 +125,22 @@ export default function AddQuest(){
                 rows={4}
                 margin="normal"
                 fullWidth
-                onChange={(event) => handleInputChange('questDesc', event.target.value)}
-                value={enteredValues.questDesc}
+                onChange={(event) => handleInputChange('description', event.target.value)}
+                value={enteredValues.description}
               />
               
+              {/* Quest Status */}
+              <FormControl fullWidth margin="normal">
+                <InputLabel>Quest Status</InputLabel>
+                <Select name="questStatus" value={enteredValues.status} onChange={(event) => handleInputChange('status', event.target.value)}>
+                  <MenuItem value="Not Started">Not Started</MenuItem>
+                  <MenuItem value="In Progress">In Progress</MenuItem>
+                  <MenuItem value="Completed">Completed</MenuItem>
+                  <MenuItem value="Failed">Failed</MenuItem>
+                </Select>
+              </FormControl>
+
+
               {/* Difficulty Level */}
               <FormControl fullWidth margin="normal">
                 <InputLabel>Difficulty Level</InputLabel>
@@ -98,7 +156,7 @@ export default function AddQuest(){
               <FormControl fullWidth margin="normal">
                 <InputLabel>Deadline</InputLabel>
                 <Select value={enteredValues.deadlineType} onChange={handleDeadlineChange}>
-                  <MenuItem value="">None</MenuItem>
+                  <MenuItem value="none">None</MenuItem>
                   <MenuItem value="tomorrow">Tomorrow</MenuItem>
                   <MenuItem value="threeDays">In 3 Days</MenuItem>
                   <MenuItem value="oneWeek">In 1 Week</MenuItem>
@@ -112,19 +170,21 @@ export default function AddQuest(){
             </Box>
 
             <Accordion>
-              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+              <AccordionSummary id="advanced-details" expandIcon={<ExpandMoreIcon />}>
                 <Typography variant="h6">Advanced Details (Optional)</Typography>
               </AccordionSummary>
                 <AccordionDetails>
-                  <TextField
-                    label="Difficulty Level"
-                    name="difficulty"
-                    variant="outlined"
-                    fullWidth
-                    margin="normal"
-                    value={enteredValues.difficulty}
-                    onChange={(event) => handleInputChange('difficulty', event.target.value)}
-                  />
+                
+                  {/* Quest Type*/}
+                  <FormControl fullWidth margin="normal">
+                    <InputLabel>Quest Type</InputLabel>
+                    <Select name="questType" value={enteredValues.questType} onChange={(event) => handleInputChange('questType', event.target.value)}>
+                      <MenuItem value="Main Quest">Main Quest (Critical task)</MenuItem>
+                      <MenuItem value="Side Quest">Side Quest (Optional but useful)</MenuItem>
+                      <MenuItem value="Bounty">Bounty (Time-limited)</MenuItem>
+                      <MenuItem value="Dungeon Raid">Dungeon Raid (Group effort)</MenuItem>
+                    </Select>
+                  </FormControl>
                   
                   <TextField
                     label="Rewards"
