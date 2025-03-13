@@ -1,26 +1,10 @@
-import type { Quest } from "@/components/quests/quest.interface";
-import Quests from "@/components/quests/quests";
+import { Paper, Typography } from "@mui/material";
 
-async function getQuests(): Promise<Quest[]> {
-  try {
-    const result = await fetch(process.env.URL + '/api/quests', { method: 'GET' });
-
-    if (!result.ok) {
-      throw new Error("Failed to fetch quests");
-    }
-    
-    return await result.json();
-  } catch (error) {
-    console.error("Error fetching quests:", error);
-    return [];
-  }
-}
-
-export default async function HomePage(){
-  const quests = await getQuests();
-  console.log(quests);
-
+export default function Home() {
   return (
-    <Quests quests={quests} />
+    <Paper sx={{ padding: 2 }}>
+      <Typography variant="h5">Welcome to the Tavern Ledger</Typography>
+      <Typography>Select a quest or create a new one to get started.</Typography>
+    </Paper>
   );
 }

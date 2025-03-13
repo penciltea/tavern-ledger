@@ -1,43 +1,33 @@
-'use client'
-import { Suspense, useState } from "react";
-import { Button, List, ListItem, ListItemText, Paper, Typography } from "@mui/material";
-import Grid from '@mui/material/Grid2';
-import QuestDetails from "@/components/quests/quest-details/quest-details";
-import type { Quest, QuestList } from '@/components/quests/quest.interface';
-import { useRouter } from "next/navigation";
+import { Paper, Typography } from "@mui/material";
+import type { Quest } from "@/components/quests/quest.interface";
 
-export default function Quests({ quests }: QuestList){
-    const [selectedItem, setSelectedItem] = useState<Quest | null>(null);
-    const router = useRouter();
+export default function Quests({ selectedItem }: { selectedItem: Quest | null }) {
+  let formattedDeadline: Date | string = "-";
+
+  if(selectedItem?.deadline){
+    let deadline = new Date(selectedItem.deadline);
+
+    formattedDeadline = deadline.toLocaleDateString('en-US', { year: 'numeric', day: '2-digit', month: 'short', hour: 'numeric', minute: 'numeric', hour12: true })
+  }
 
     return (
-        <Grid container spacing={1}>
-            {/* Left Panel: List */}
-            <Grid size={4}>
-                <Paper>
-                    <Suspense fallback={<Typography variant="body2">Loading Quests...</Typography>}>
-                    <Button onClick={() => router.push("/quest/")} variant="contained" color="primary" fullWidth>
-                        Create New Quest
-                    </Button>
-                        <List>
-                            {quests.map((quest) => (
-                                <ListItem key={quest._id}>
-                                    <ListItemText 
-                                        onClick={() => setSelectedItem(quest)} 
-                                        primary={quest.questName} 
-                                        secondary={quest.description} 
-                                    />
-                                </ListItem>
-                            ))}
-                        </List>
-                    </Suspense>
-                </Paper>
-            </Grid>
-            
-            { /* Right panel: details */}
-            <Grid size={8}>
-                <QuestDetails selectedItem={ selectedItem } />
-            </Grid>
-        </Grid>
-    )
+      <Paper sx={{ padding: 2 }}>
+        {selectedItem ? (
+          <>
+            <Typography variant="h5">{selectedItem.questName}</Typography>
+            <Typography>{selectedItem.description}</Typography>
+            <Typography>Status: {selectedItem.status}</Typography>
+            <Typography>Deadline: {formattedDeadline}</Typography>
+            <Typography>Difficulty: {selectedItem.difficulty}</Typography>
+            <Typography>Reward: {selectedItem.reward}</Typography>
+            <Typography>Quest Giver: {selectedItem.questGiver}</Typography>
+            <Typography>Location: {selectedItem.location}</Typography>
+            <Typography>Party Members: {selectedItem.partyMembers}</Typography>
+          </>
+        ) : (
+          <Typography>Select a quest to view details</Typography>
+        )}
+      </Paper>
+    );
   }
+  
