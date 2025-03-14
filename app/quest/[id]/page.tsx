@@ -1,6 +1,6 @@
 import { Paper, Typography } from "@mui/material";
 import { notFound } from "next/navigation";
-import { Quest } from "@/components/quests/quest.interface"
+import { Quest } from "@/components/quest.interface"
 
 async function getQuest(id: string): Promise<Quest> {
   try {
@@ -17,8 +17,8 @@ async function getQuest(id: string): Promise<Quest> {
   }
 }
 
-export default async function displayQuest({ params }: { params: { id: string } }) {
-  if(!params?.id){
+export default async function displayQuest(props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
     const quest = await getQuest(params.id);
 
     if (!quest) {
@@ -35,5 +35,4 @@ export default async function displayQuest({ params }: { params: { id: string } 
         <Typography>{quest.description}</Typography>
       </Paper>
     );
-  }
 }

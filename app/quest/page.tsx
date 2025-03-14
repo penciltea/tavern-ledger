@@ -76,35 +76,23 @@ export default function QuestForm(){
       }
   
       try {
-        const res = await fetch("/api/quests", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ...submittedData, deadline: submittedData.deadline?.toISOString() || null }),
+        const response = await fetch('/api/quests', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(formData),
         });
-  
-        const data = await res.json();
-        if (res.ok) {
-          setSuccessMessage("Quest created successfully!");
-          setFormData({
-            questName: "",
-            description: "",
-            status: "",
-            difficulty: "",
-            deadlineType: "",
-            deadline: null,
-            questGiver: "",
-            questType: "",
-            reward: "",
-            partyMembers: "",
-            location: ""
-          });
 
-          router.push("/");
-        } else {
-          setErrorMessage(data.message || "Failed to create quest.");
+        if (!response.ok) {
+            setErrorMessage(`Failed to create quest: ${response.statusText}`);
         }
-      } catch (error) {
-        setErrorMessage("Something went wrong. Please try again.");
+
+        const { _id } = await response.json();
+        router.push(`/quest/${_id}`); // Redirect to the newly created quest
+      } catch (err) {
+          console.error("Error submitting form:", err);
+          setErrorMessage("Something went wrong. Please try again.");
       }
     };
 

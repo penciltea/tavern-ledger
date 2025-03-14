@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
         const collection = db.connection.collection('quests');
         const body = await req.json()
         const newItem = await collection.insertOne(body)
-        return NextResponse.json({newItem}, {status: 201})
+        return NextResponse.json({_id: newItem.insertedId}, {status: 201})
     } catch (error: any) {
         console.error(error)
         return NextResponse.json({message: error.message}, {status: 500})

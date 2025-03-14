@@ -3,7 +3,7 @@ import { Suspense, useState } from "react";
 import { Button, List, ListItem, ListItemText, Paper, Typography } from "@mui/material";
 import Grid from '@mui/material/Grid2';
 import QuestDetails from "@/components/quests/quest-details/quest-details";
-import type { Quest, QuestList } from '@/components/quests/quest.interface';
+import type { Quest, QuestList } from '@/components/quest.interface';
 import { useRouter, usePathname } from "next/navigation";
 
 export default function QuestList({ quests }: QuestList){
