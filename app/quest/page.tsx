@@ -1,4 +1,5 @@
 'use client'
+import { useSWRConfig } from 'swr';
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Accordion, AccordionDetails, AccordionSummary, Box, Button, TextField, Typography, Select, MenuItem, FormControl, 
@@ -9,10 +10,15 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import dayjs, { Dayjs } from "dayjs";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"; // Ensure the correct environment variable
+
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
+
 export default function QuestForm(){
   const router = useRouter();
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const { mutate: globalMutate } = useSWRConfig();
 
     const [formData, setFormData] = useState({
         questName: "",
@@ -74,21 +80,24 @@ export default function QuestForm(){
         setErrorMessage("Quest Name and Description are required.");
         return;
       }
-  
+        
       try {
         const response = await fetch('/api/quests', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(formData),
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(formData),
         });
+
+        globalMutate(`${API_URL}/api/quests`);
 
         if (!response.ok) {
             setErrorMessage(`Failed to create quest: ${response.statusText}`);
         }
 
         const { _id } = await response.json();
+        
         router.push(`/quest/${_id}`); // Redirect to the newly created quest
       } catch (err) {
           console.error("Error submitting form:", err);
