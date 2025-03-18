@@ -5,7 +5,7 @@ import { Button, List, ListItem, ListItemText, Paper, Typography } from "@mui/ma
 import type { Quest, QuestList } from '@/components/quest.interface';
 import { useRouter } from "next/navigation";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"; // Ensure the correct environment variable
+const API_URL = process.env.API_URL || "http://localhost:3000"; // Ensure the correct environment variable
 
 const fetcher = (url: string) => fetch(url, { method: "GET" }).then((res) => res.json());
 

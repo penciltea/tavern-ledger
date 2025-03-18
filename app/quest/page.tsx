@@ -10,7 +10,7 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import dayjs, { Dayjs } from "dayjs";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"; // Ensure the correct environment variable
+const API_URL = process.env.API_URL || "http://localhost:3000"; // Ensure the correct environment variable
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
