@@ -1,7 +1,7 @@
 export interface Quest {
     questName: string;
     description: string;
-    status?: number;
+    status?: string;
     _id?: number;
     difficulty: string;
     deadlineType: string;

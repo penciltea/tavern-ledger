@@ -14,6 +14,7 @@ export default function QuestList(){
     const { data: quests, error, mutate } = useSWR(`${API_URL}/api/quests`, fetcher);
     const [selectedItem, setSelectedItem] = useState<Quest | null>(null);
     
+    if(error){ console.log(error); }
 
     if (error) return <Typography>Error loading quests.</Typography>;
     if (!quests) return <Typography>Loading...</Typography>;

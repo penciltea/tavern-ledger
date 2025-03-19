@@ -1,38 +1,29 @@
-import { Paper, Typography } from "@mui/material";
 import { notFound } from "next/navigation";
-import { Quest } from "@/components/quest.interface"
+import QuestDetails from "@/components/quest-details";
+import { Quest } from "@/components/quest.interface";
 
-async function getQuest(id: string): Promise<Quest> {
+async function getQuest(id: string): Promise<Quest | null> {
   try {
-    const result = await fetch(`${process.env.URL}/api/quests?id=${id}`, { method: 'GET' });
+    const result = await fetch(`${process.env.URL}/api/quests?id=${id}`, { method: "GET" });
 
     if (!result.ok) {
-      throw new Error("Failed to fetch quests");
+      throw new Error("Failed to fetch quest");
     }
+
+    const quest = await result.json();
     
-    return result.json();
+    return quest || null;
   } catch (error) {
-    console.error("Error fetching quests:", error);
-    return notFound();
+    console.error("Error fetching quest:", error);
+    return null;
   }
 }
 
-export default async function displayQuest(props: { params: Promise<{ id: string }> }) {
-  const params = await props.params;
-    const quest = await getQuest(params.id);
+export default async function QuestPage({ params }: { params: Promise<{ id: string }> }) {
+  const id = (await params).id;
+  const quest = await getQuest(id);
 
-    if (!quest) {
-      return (
-        <Paper sx={{ padding: 2 }}>
-          <Typography variant="h5">Quest Not Found</Typography>
-        </Paper>
-      );
-    }
+  if (!quest) return notFound();
 
-    return (
-      <Paper sx={{ padding: 2 }}>
-        <Typography variant="h5">{quest.questName}</Typography>
-        <Typography>{quest.description}</Typography>
-      </Paper>
-    );
+  return <QuestDetails quest={quest} />;
 }

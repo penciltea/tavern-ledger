@@ -1,7 +1,7 @@
 'use client'
 import { useSWRConfig } from 'swr';
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Accordion, AccordionDetails, AccordionSummary, Box, Button, TextField, Typography, Select, MenuItem, FormControl, 
   InputLabel, Alert } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
@@ -12,22 +12,58 @@ import dayjs, { Dayjs } from "dayjs";
 
 const API_URL = process.env.API_URL || "http://localhost:3000"; // Ensure the correct environment variable
 
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
-
 export default function QuestForm(){
+  const searchParams = useSearchParams();
+  const questId = searchParams.get("id"); // Get ID from URL params
   const router = useRouter();
+  const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const { mutate: globalMutate } = useSWRConfig();
+
+  // Fetch existing quest data if questId is present
+  useEffect(() => {
+    if (!questId) return; // Only fetch if editing
+
+    const fetchQuest = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch(`${API_URL}/api/quests?id=${questId}`);
+        if (!response.ok) throw new Error("Failed to fetch quest");
+        
+        const quest = await response.json();
+        setFormData({
+          questName: quest.questName || "",
+          description: quest.description || "",
+          status: quest.status || null,
+          difficulty: quest.difficulty || null,
+          deadlineType: null,
+          deadline: quest.deadline ? dayjs(quest.deadline) : null,
+          questType: quest.questType || null,
+          reward: quest.reward || "",
+          questGiver: quest.questGiver || "",
+          location: quest.location || "",
+          partyMembers: quest.partyMembers || ""
+        });
+      } catch (error) {
+        console.error("Error fetching quest:", error);
+        setErrorMessage("Failed to load quest details.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchQuest();
+  }, [questId]);
 
     const [formData, setFormData] = useState({
         questName: "",
         description: "",
         status: "",
-        difficulty: "",
-        deadlineType: "",
+        difficulty: null,
+        deadlineType: null,
         deadline: null as Dayjs | null,
-        questType: "",
+        questType: null,
         reward: "",
         questGiver: "",
         location: "",
@@ -66,15 +102,15 @@ export default function QuestForm(){
       const submittedData = {
         questName: formData.questName, 
         description: formData.description,
-        status: formData.status || "incomplete",
-        difficulty: formData.difficulty || "easy",
+        status: formData.status,
+        difficulty: formData.difficulty,
         deadline: formData.deadline || null,
         reward: formData.reward || "-",
+        questType: formData.questType,
         questGiver: formData.questGiver || "-",
         location: formData.location || "-",
         partyMembers: formData.partyMembers || "-"
       };
-
   
       if (!submittedData.questName || !submittedData.description) {
         setErrorMessage("Quest Name and Description are required.");
@@ -82,23 +118,29 @@ export default function QuestForm(){
       }
         
       try {
-        const response = await fetch('/api/quests', {
-          method: 'POST',
+        const response = await fetch(`/api/quests${questId ? `?id=${questId}` : ''}`, {
+          method: questId ? 'PUT' : 'POST',
           headers: {
-              'Content-Type': 'application/json',
+            'Content-Type': 'application/json',
           },
-          body: JSON.stringify(formData),
+          body: JSON.stringify(submittedData), // Don't send _id in body; send in URL
         });
 
         globalMutate(`${API_URL}/api/quests`);
 
         if (!response.ok) {
-            setErrorMessage(`Failed to create quest: ${response.statusText}`);
+          throw new Error(`Failed to ${questId ? "update" : "create"} quest: ${response.statusText}`);
+        }
+        
+        if(response.status === 201 || response.status === 200){
+          const { _id } = await response.json();
+          router.push(`/quest/${_id}`); // Redirect to the newly created quest  
+        } else {
+          setErrorMessage(`Failed to ${questId ? "update" : "create"} quest: ${response.statusText}`);
         }
 
-        const { _id } = await response.json();
         
-        router.push(`/quest/${_id}`); // Redirect to the newly created quest
+                
       } catch (err) {
           console.error("Error submitting form:", err);
           setErrorMessage("Something went wrong. Please try again.");
@@ -111,7 +153,9 @@ export default function QuestForm(){
       {successMessage && <Alert severity="success">{successMessage}</Alert>}
       {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
       
-      <Typography variant="h3" gutterBottom> Create a New Quest </Typography>
+      <Typography variant="h3" gutterBottom>
+        {questId ? "Edit Quest" : "Create a New Quest"}
+      </Typography>
         <LocalizationProvider dateAdapter={AdapterDayjs}>
           <form onSubmit={handleSubmit}>
             <Box sx={{mb: 2}}>
@@ -144,7 +188,7 @@ export default function QuestForm(){
                {/* Quest Status */}
                <FormControl fullWidth margin="normal" required>
                 <InputLabel>Quest Status</InputLabel>
-                <Select name="questStatus" value={formData.status} onChange={(event) => handleInputChange('status', event.target.value)}>
+                <Select name="questStatus" value={formData.status} onChange={(event) => handleInputChange('status', event.target.value || null)}>
                   <MenuItem value="Not Started">Not Started</MenuItem>
                   <MenuItem value="In Progress">In Progress</MenuItem>
                   <MenuItem value="Completed">Completed</MenuItem>
@@ -162,7 +206,7 @@ export default function QuestForm(){
                 {/* Difficulty Level */}
                 <FormControl fullWidth margin="normal">
                   <InputLabel>Difficulty Level</InputLabel>
-                  <Select name="difficulty" value={formData.difficulty} onChange={(event) => handleInputChange('difficulty', event.target.value)}>
+                  <Select name="difficulty" value={formData.difficulty ?? ""} onChange={(event) => handleInputChange('difficulty', event.target.value || null)}>
                     <MenuItem value="Easy">Easy</MenuItem>
                     <MenuItem value="Normal">Normal</MenuItem>
                     <MenuItem value="Hard">Hard</MenuItem>
@@ -173,7 +217,7 @@ export default function QuestForm(){
                 {/* Quest Type*/}
                 <FormControl fullWidth margin="normal">
                   <InputLabel>Quest Type</InputLabel>
-                  <Select name="questType" value={formData.questType} onChange={(event) => handleInputChange('questType', event.target.value)}>
+                  <Select name="questType" value={formData.questType ?? "" } onChange={(event) => handleInputChange('questType', event.target.value || null)}>
                     <MenuItem value="Main Quest">Main Quest (Critical task)</MenuItem>
                     <MenuItem value="Side Quest">Side Quest (Optional but useful)</MenuItem>
                     <MenuItem value="Bounty">Bounty (Time-limited)</MenuItem>
@@ -184,7 +228,7 @@ export default function QuestForm(){
                 {/* Deadline */}
                 <FormControl fullWidth margin="normal">
                   <InputLabel>Deadline</InputLabel>
-                  <Select value={formData.deadlineType} onChange={handleDeadlineChange}>
+                  <Select value={formData.deadlineType ?? ""} onChange={handleDeadlineChange}>
                     <MenuItem value="none">None</MenuItem>
                     <MenuItem value="tomorrow">Tomorrow</MenuItem>
                     <MenuItem value="threeDays">In 3 Days</MenuItem>
