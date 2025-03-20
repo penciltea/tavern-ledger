@@ -3,7 +3,7 @@ import QuestList from '@/components/quest-list';
 
 export default function QuestListLayout({ children }: { children: React.ReactNode }){
     return (
-        <Grid container spacing={2}>
+        <Grid container spacing={1}>
             <Grid size={4}>
                 <QuestList />
             </Grid>

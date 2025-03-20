@@ -23,7 +23,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <ThemeProvider theme={theme}>
               <CssBaseline />
                 <MainHeader />
-                <Container>
+                <Container sx={{padding: 2, maxHeight:'60vh', overflow: 'none'}}>
                   <QuestListLayout>{children}</QuestListLayout>
                 </Container>
               <ModeSwitch />

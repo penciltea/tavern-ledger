@@ -1,7 +1,7 @@
 'use client'
 import useSWR from "swr";
 import { Suspense, useState } from "react";
-import { Button, List, ListItem, ListItemText, Paper, Typography } from "@mui/material";
+import { Button, List, ListItem, ListItemText, Paper, Typography, Divider } from "@mui/material";
 import type { Quest, QuestList } from '@/components/quest.interface';
 import { useRouter } from "next/navigation";
 
@@ -20,22 +20,26 @@ export default function QuestList(){
     if (!quests) return <Typography>Loading...</Typography>;
 
     return (
-        <Paper>
+        <Paper sx={{p: 1, height: '100%', maxHeight: '80vh', overflow: 'auto'}}>
             <Suspense fallback={<Typography variant="body2">Loading Quests...</Typography>}>
-            <Button onClick={() => router.push("/quest/")} variant="contained" color="primary" fullWidth>
+            <Button variant="contained" color="primary" fullWidth onClick={() => router.push("/quest/")}>
                 Create New Quest
             </Button>
             <List>
-                {quests.map((quest: Quest) => (
-                    <ListItem
-                        key={quest._id}
-                        onClick={() => router.push(`/quest/${quest._id}`)}
-                    >
-                        <ListItemText
+                {quests.map((quest: Quest, index: number) => (
+                    <>
+                        <ListItem
+                            key={quest._id}
+                            onClick={() => router.push(`/quest/${quest._id}`)}
+                        >
+                            <ListItemText 
                             primary={quest.questName} 
-                            secondary={quest.description} 
-                        />
-                    </ListItem>
+                            secondary={quest.status}
+                            />
+                        </ListItem>
+                        {/* hide divider for last item in list */}
+                        { index < quests.length - 1 && <Divider />} 
+                    </>
                 ))}
             </List>
             </Suspense>

@@ -8,6 +8,7 @@ export interface IQuest extends Document {
     description: string;
     status: 'Not Started' | 'In Progress' | 'Completed' | 'Failed';
     difficulty: 'Easy' | 'Normal' | 'Hard' | 'Legendary';
+    deadlineType: 'none' | 'tomorrow' | 'threeDays' | 'oneWeek' | 'oneMonth' | 'custom';
     deadline: Date;
     questType: 'Main Quest' | 'Side Quest' | 'Bounty' | 'Dungeon Raid';
     reward: String,
@@ -32,6 +33,12 @@ export interface IQuest extends Document {
         type: String,
         enum: ['Easy', 'Normal', 'Hard', 'Legendary'],
         default: 'Easy', 
+        required: false
+      },
+      deadlineType: {
+        type: String,
+        enum: ['none', 'tomorrow', 'threeDays', 'oneWeek', 'oneMonth', 'custom'],
+        default: 'none',
         required: false
       },
       deadline: {type: Date, default: null, required: false},

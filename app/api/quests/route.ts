@@ -38,7 +38,6 @@ export async function POST(req: NextRequest) {
   try {
     await connectToDatabase();
     const body = await req.json();
-
     const newQuest = new Quest(body);
     await newQuest.save();
 
