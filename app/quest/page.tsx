@@ -3,13 +3,14 @@ import { useSWRConfig } from 'swr';
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Accordion, AccordionDetails, AccordionSummary, Box, Button, TextField, Typography, Select, MenuItem, FormControl, 
-  InputLabel, Alert, Snackbar, Paper } from "@mui/material";
+  InputLabel, Paper } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import dayjs, { Dayjs } from "dayjs";
+import { useSnackbar } from '@/contexts/snackbar';
 
 const API_URL = process.env.API_URL || "http://localhost:3000"; // Ensure the correct environment variable
 
@@ -20,15 +21,7 @@ export default function QuestForm(){
   const [loading, setLoading] = useState(false);
   const { mutate: globalMutate } = useSWRConfig();
 
-  const [snackbar, setSnackbar] = useState({
-    open: false,
-    message: "",
-    severity: "success", // "error", "warning", "info"
-  });
-
-  const showSnackbar = (message: string, severity: "success" | "error" | "warning" | "info") => {
-    setSnackbar({ open: true, message, severity });
-  };
+  const { showSnackbar } = useSnackbar();
 
   const [formData, setFormData] = useState({
     questName: "",
@@ -144,7 +137,8 @@ export default function QuestForm(){
         if(response.status === 201 || response.status === 200){
           const { _id } = await response.json();
           showSnackbar(`Quest ${questId ? "updated" : "created"} successfully!`, "success");
-          router.push(`/quest/${_id}?success=true`); // Redirect to the created/updated quest  
+          router.push(`/quest/${_id}?success=true`); // Redirect to the created/updated quest
+           
         } else {
           showSnackbar(`Failed to ${questId ? "update" : "create"} quest: ${response.statusText}`, "error");
         }                
@@ -156,147 +150,134 @@ export default function QuestForm(){
 
 
     return(
-      <>
-        <Snackbar 
-          open={snackbar.open} 
-          autoHideDuration={3000} 
-          onClose={() => setSnackbar({ ...snackbar, open: false })}
-          anchorOrigin={{ vertical: "top", horizontal: "right" }}
-        >
-          <Alert severity={snackbar.severity} onClose={() => setSnackbar({ ...snackbar, open: false })}>
-            {snackbar.message}
-          </Alert>
-        </Snackbar>
+      <Paper sx={{padding: 2, height: '100%', maxHeight: '80vh', overflow: 'auto'}}>
+        <Button variant="text" onClick={() => router.back()} > <ArrowBackIosIcon fontSize="small" /> Go back </Button>
+        
+        <Typography variant="h3" gutterBottom>
+          {questId ? "Edit Quest" : "Create a New Quest"}
+        </Typography>
 
-        <Paper sx={{padding: 2, height: '100%', maxHeight: '80vh', overflow: 'auto'}}>
-          <Button variant="text" onClick={() => router.back()} > <ArrowBackIosIcon fontSize="small" /> Go back </Button>
-          
-          <Typography variant="h3" gutterBottom>
-            {questId ? "Edit Quest" : "Create a New Quest"}
-          </Typography>
-
-          <LocalizationProvider dateAdapter={AdapterDayjs}>
-            <form onSubmit={handleSubmit}>
-              <Box sx={{mb: 2}}>
-                <Typography variant="h5">Basic Details (Required)</Typography>
-                <TextField 
-                    id="questName" 
-                    label="Quest Name" 
-                    variant="outlined" 
-                    name="questName" 
-                    margin="normal"
-                    fullWidth
-                    required
-                    onChange={(event) => handleInputChange('questName', event.target.value)}
-                    value={formData.questName}
-                />
-              
-                <TextField
-                  id="description"
-                  name="description"
-                  label="Description"
-                  multiline
-                  rows={4}
+        <LocalizationProvider dateAdapter={AdapterDayjs}>
+          <form onSubmit={handleSubmit}>
+            <Box sx={{mb: 2}}>
+              <Typography variant="h5">Basic Details (Required)</Typography>
+              <TextField 
+                  id="questName" 
+                  label="Quest Name" 
+                  variant="outlined" 
+                  name="questName" 
                   margin="normal"
                   fullWidth
                   required
-                  onChange={(event) => handleInputChange('description', event.target.value)}
-                  value={formData.description}
-                />
+                  onChange={(event) => handleInputChange('questName', event.target.value)}
+                  value={formData.questName}
+              />
+            
+              <TextField
+                id="description"
+                name="description"
+                label="Description"
+                multiline
+                rows={4}
+                margin="normal"
+                fullWidth
+                required
+                onChange={(event) => handleInputChange('description', event.target.value)}
+                value={formData.description}
+              />
 
-                {/* Quest Status */}
-                <FormControl fullWidth margin="normal" required>
-                  <InputLabel>Quest Status</InputLabel>
-                  <Select name="questStatus" value={formData.status} onChange={(event) => handleInputChange('status', event.target.value || null)}>
-                    <MenuItem value="Not Started">Not Started</MenuItem>
-                    <MenuItem value="In Progress">In Progress</MenuItem>
-                    <MenuItem value="Completed">Completed</MenuItem>
-                    <MenuItem value="Failed">Failed</MenuItem>
+              {/* Quest Status */}
+              <FormControl fullWidth margin="normal" required>
+                <InputLabel>Quest Status</InputLabel>
+                <Select name="questStatus" value={formData.status} onChange={(event) => handleInputChange('status', event.target.value || null)}>
+                  <MenuItem value="Not Started">Not Started</MenuItem>
+                  <MenuItem value="In Progress">In Progress</MenuItem>
+                  <MenuItem value="Completed">Completed</MenuItem>
+                  <MenuItem value="Failed">Failed</MenuItem>
+                </Select>
+              </FormControl>
+            </Box>
+
+            <Accordion>
+              <AccordionSummary id="extra-details" expandIcon={<ExpandMoreIcon />}>
+                <Typography variant="h6">Extra Details (Optional)</Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+
+                {/* Difficulty Level */}
+                <FormControl fullWidth margin="normal">
+                  <InputLabel>Difficulty Level</InputLabel>
+                  <Select name="difficulty" value={formData.difficulty ?? ""} onChange={(event) => handleInputChange('difficulty', event.target.value || null)}>
+                    <MenuItem value="Easy">Easy</MenuItem>
+                    <MenuItem value="Normal">Normal</MenuItem>
+                    <MenuItem value="Hard">Hard</MenuItem>
+                    <MenuItem value="Legendary">Legendary</MenuItem>
                   </Select>
                 </FormControl>
-              </Box>
+              
+                {/* Quest Type*/}
+                <FormControl fullWidth margin="normal">
+                  <InputLabel>Quest Type</InputLabel>
+                  <Select name="questType" value={formData.questType ?? "" } onChange={(event) => handleInputChange('questType', event.target.value || null)}>
+                    <MenuItem value="Main Quest">Main Quest (Critical task)</MenuItem>
+                    <MenuItem value="Side Quest">Side Quest (Optional but useful)</MenuItem>
+                    <MenuItem value="Bounty">Bounty (Time-limited)</MenuItem>
+                    <MenuItem value="Dungeon Raid">Dungeon Raid (Group effort)</MenuItem>
+                  </Select>
+                </FormControl>
 
-              <Accordion>
-                <AccordionSummary id="extra-details" expandIcon={<ExpandMoreIcon />}>
-                  <Typography variant="h6">Extra Details (Optional)</Typography>
-                </AccordionSummary>
-                <AccordionDetails>
+                <Box>
+                {/* Deadline */}
+                <FormControl sx={{width: 1/2}} margin="normal">
+                  <InputLabel>Deadline</InputLabel>
+                  <Select name="deadlineType" value={formData.deadlineType ?? ""} onChange={(event) => handleDeadlineChange(event)}>
+                    <MenuItem value="none">None</MenuItem>
+                    <MenuItem value="tomorrow">Tomorrow</MenuItem>
+                    <MenuItem value="threeDays">In 3 Days</MenuItem>
+                    <MenuItem value="oneWeek">In 1 Week</MenuItem>
+                    <MenuItem value="oneMonth">In 1 Month</MenuItem>
+                    <MenuItem value="custom">Custom Date</MenuItem>
+                  </Select>
+                </FormControl>
+                {formData.deadlineType === "custom" && (
+                  <DateTimePicker sx={{ mt: 2, pl: 2, width: 1/2 }} value={formData.deadline} onChange={(newValue) => setFormData({ ...formData, deadline: newValue })} />
+                )}
+                </Box>
+                <TextField
+                  label="Quest Giver"
+                  name="questGiver"
+                  variant="outlined"
+                  fullWidth
+                  margin="normal"
+                  value={formData.questGiver}
+                  onChange={(event) => handleInputChange('questGiver', event.target.value)}
+                />
 
-                  {/* Difficulty Level */}
-                  <FormControl fullWidth margin="normal">
-                    <InputLabel>Difficulty Level</InputLabel>
-                    <Select name="difficulty" value={formData.difficulty ?? ""} onChange={(event) => handleInputChange('difficulty', event.target.value || null)}>
-                      <MenuItem value="Easy">Easy</MenuItem>
-                      <MenuItem value="Normal">Normal</MenuItem>
-                      <MenuItem value="Hard">Hard</MenuItem>
-                      <MenuItem value="Legendary">Legendary</MenuItem>
-                    </Select>
-                  </FormControl>
-                
-                  {/* Quest Type*/}
-                  <FormControl fullWidth margin="normal">
-                    <InputLabel>Quest Type</InputLabel>
-                    <Select name="questType" value={formData.questType ?? "" } onChange={(event) => handleInputChange('questType', event.target.value || null)}>
-                      <MenuItem value="Main Quest">Main Quest (Critical task)</MenuItem>
-                      <MenuItem value="Side Quest">Side Quest (Optional but useful)</MenuItem>
-                      <MenuItem value="Bounty">Bounty (Time-limited)</MenuItem>
-                      <MenuItem value="Dungeon Raid">Dungeon Raid (Group effort)</MenuItem>
-                    </Select>
-                  </FormControl>
+                <TextField
+                  label="Location"
+                  name="location"
+                  variant="outlined"
+                  fullWidth
+                  margin="normal"
+                  value={formData.location}
+                  onChange={(event) => handleInputChange('location', event.target.value)}
+                />
 
-                  <Box>
-                  {/* Deadline */}
-                  <FormControl sx={{width: 1/2}} margin="normal">
-                    <InputLabel>Deadline</InputLabel>
-                    <Select name="deadlineType" value={formData.deadlineType ?? ""} onChange={(event) => handleDeadlineChange(event)}>
-                      <MenuItem value="none">None</MenuItem>
-                      <MenuItem value="tomorrow">Tomorrow</MenuItem>
-                      <MenuItem value="threeDays">In 3 Days</MenuItem>
-                      <MenuItem value="oneWeek">In 1 Week</MenuItem>
-                      <MenuItem value="oneMonth">In 1 Month</MenuItem>
-                      <MenuItem value="custom">Custom Date</MenuItem>
-                    </Select>
-                  </FormControl>
-                  {formData.deadlineType === "custom" && (
-                    <DateTimePicker sx={{ mt: 2, pl: 2, width: 1/2 }} value={formData.deadline} onChange={(newValue) => setFormData({ ...formData, deadline: newValue })} />
-                  )}
-                  </Box>
-                  <TextField
-                    label="Quest Giver"
-                    name="questGiver"
-                    variant="outlined"
-                    fullWidth
-                    margin="normal"
-                    value={formData.questGiver}
-                    onChange={(event) => handleInputChange('questGiver', event.target.value)}
-                  />
+                <TextField
+                  label="Rewards"
+                  name="rewards"
+                  variant="outlined"
+                  fullWidth
+                  margin="normal"
+                  value={formData.reward}
+                  onChange={(event) => handleInputChange('reward', event.target.value)}
+                />
+              </AccordionDetails>
+            </Accordion>
 
-                  <TextField
-                    label="Location"
-                    name="location"
-                    variant="outlined"
-                    fullWidth
-                    margin="normal"
-                    value={formData.location}
-                    onChange={(event) => handleInputChange('location', event.target.value)}
-                  />
-
-                  <TextField
-                    label="Rewards"
-                    name="rewards"
-                    variant="outlined"
-                    fullWidth
-                    margin="normal"
-                    value={formData.reward}
-                    onChange={(event) => handleInputChange('reward', event.target.value)}
-                  />
-                </AccordionDetails>
-              </Accordion>
-
-              <Button type="submit" variant="contained" sx={{ mt: 2, px: 8 }} size="large"> {questId ? "update" : "create"} </Button>
-            </form>
-          </LocalizationProvider>
-        </Paper>
-      </>
+            <Button type="submit" variant="contained" sx={{ mt: 2, px: 8 }} size="large"> {questId ? "update" : "create"} </Button>
+          </form>
+        </LocalizationProvider>
+      </Paper>
     )
 }

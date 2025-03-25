@@ -1,11 +1,11 @@
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter';
 import type { Metadata } from 'next';
 import { Container } from '@mui/material';
-import Grid from '@mui/material/Grid2';
 import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import theme from '@/theme';
 import ModeSwitch from '@/components/mode-switch';
+import { SnackbarProvider } from '@/contexts/snackbar';
 import MainHeader from '@/components/main-header/main-header';
 import QuestListLayout from '@/components/quest-list-layout';
 
@@ -19,16 +19,18 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang="en">
         <body>
-          <AppRouterCacheProvider>
-            <ThemeProvider theme={theme}>
-              <CssBaseline />
-                <MainHeader />
-                <Container sx={{padding: 2, maxHeight:'60vh', overflow: 'none'}}>
-                  <QuestListLayout>{children}</QuestListLayout>
-                </Container>
-              <ModeSwitch />
-            </ThemeProvider>
-        </AppRouterCacheProvider>
+          <SnackbarProvider>
+            <AppRouterCacheProvider>
+              <ThemeProvider theme={theme}>
+                <CssBaseline />
+                  <MainHeader />
+                  <Container sx={{padding: 2, maxHeight:'60vh', overflow: 'none'}}>
+                    <QuestListLayout>{children}</QuestListLayout>
+                  </Container>
+                <ModeSwitch />
+              </ThemeProvider>
+          </AppRouterCacheProvider>
+        </SnackbarProvider>
         </body>
     </html>
   );

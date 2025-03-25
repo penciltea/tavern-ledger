@@ -1,7 +1,7 @@
 'use client'
 import useSWR from "swr";
 import { Suspense, useState } from "react";
-import { Button, List, ListItem, ListItemText, Paper, Typography, Divider } from "@mui/material";
+import { Button, List, ListItem, ListItemText, Paper, Typography, Divider, ListSubheader } from "@mui/material";
 import type { Quest, QuestList } from '@/components/quest.interface';
 import { useRouter } from "next/navigation";
 
@@ -22,14 +22,16 @@ export default function QuestList(){
     return (
         <Paper sx={{p: 1, height: '100%', maxHeight: '80vh', overflow: 'auto'}}>
             <Suspense fallback={<Typography variant="body2">Loading Quests...</Typography>}>
-            <Button variant="contained" color="primary" fullWidth onClick={() => router.push("/quest/")}>
-                Create New Quest
-            </Button>
             <List>
+                <ListSubheader>
+                    <Button variant="contained" color="primary" fullWidth onClick={() => router.push("/quest/")}>
+                        Create New Quest
+                    </Button>
+                </ListSubheader>
                 {quests.map((quest: Quest, index: number) => (
-                    <>
+                    <div key={quest._id} >
                         <ListItem
-                            key={quest._id}
+                            
                             onClick={() => router.push(`/quest/${quest._id}`)}
                         >
                             <ListItemText 
@@ -39,7 +41,7 @@ export default function QuestList(){
                         </ListItem>
                         {/* hide divider for last item in list */}
                         { index < quests.length - 1 && <Divider />} 
-                    </>
+                    </div>
                 ))}
             </List>
             </Suspense>
