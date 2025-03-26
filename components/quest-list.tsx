@@ -1,8 +1,9 @@
 'use client'
 import useSWR from "swr";
 import { Suspense, useState } from "react";
-import { TextField, Button, List, ListItem, ListItemText, Paper, Typography, Divider, ListSubheader } from "@mui/material";
+import { TextField, Button, List, ListItem, ListItemText, Paper, Typography, Divider, ListSubheader, Box, Pagination, Stack } from "@mui/material";
 import AddIcon from '@mui/icons-material/Add';
+import { useQuestContext } from "@/contexts/quest";
 import type { Quest, QuestList } from '@/components/quest.interface';
 import { useRouter } from "next/navigation";
 
@@ -11,10 +12,15 @@ const API_URL = process.env.API_URL || "http://localhost:3000"; // Ensure the co
 const fetcher = (url: string) => fetch(url, { method: "GET" }).then((res) => res.json());
 
 export default function QuestList(){
-    const router = useRouter();
-    const { data: quests, error } = useSWR(`${API_URL}/api/quests`, fetcher);
+    const { searchText, setSearchText, currentPage, setCurrentPage } = useQuestContext();
 
-    const [searchText, setSearchText] = useState("");
+    const router = useRouter();
+    
+    const { data, error } = useSWR(`${API_URL}/api/quests?search=${searchText}&page=${currentPage}`, fetcher);
+
+    const quests = data?.quests || []; // Use an empty array as fallback
+    const totalPages = data?.totalPages || 1;
+
     const [filtersOpen, setFiltersOpen] = useState(false);
     const [filteredQuests, setFilteredQuests] = useState(quests);
 
@@ -29,11 +35,15 @@ export default function QuestList(){
         const text = e.target.value.toLowerCase();
         setSearchText(text);
         setFilteredQuests(
-          quests.filter((quest: Quest) =>
+            quests.filter((quest: Quest) =>
             quest.questName.toLowerCase().includes(text)
-          )
+            )
         );
-      };
+    };
+
+    const handlePageChange = (event: React.ChangeEvent<unknown>, page: number) => {
+        setCurrentPage(page); // Update the current page
+    };
 
     return (
         <Paper sx={{p: 1, height: '100%', maxHeight: '80vh', overflow: 'auto'}}>
@@ -53,7 +63,12 @@ export default function QuestList(){
                         Create
                     </Button>
                 </ListSubheader>
-                {(filteredQuests || quests).map((quest: Quest, index: number) => (
+                {quests.length === 0 ? (
+                    <Typography sx={{ textAlign: "center", mt: 2 }}>
+                    No quests found.
+                    </Typography>
+                ) : (
+                    quests.map((quest: Quest, index: number) => (
                     <div key={quest._id} >
                         <ListItem
                             onClick={() => router.push(`/quest/${quest._id}`)}
@@ -97,8 +112,17 @@ export default function QuestList(){
                         {/* hide divider for last item in list */}
                         { index < quests.length - 1 && <Divider />} 
                     </div>
+                )
                 ))}
             </List>
+            <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
+                <Pagination
+                    count={totalPages} // Total number of pages
+                    page={currentPage} // Current active page
+                    onChange={handlePageChange} // Event handler for page changes
+                    color="primary"
+                />
+                </Box>
             </Suspense>
         </Paper>
     )

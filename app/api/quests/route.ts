@@ -9,7 +9,10 @@ export async function GET(req: NextRequest) {
     const db = await connectToDatabase();
     // Extract query parameters
     const { searchParams } = new URL(req.url);
-    const id = searchParams.get('id'); // Get the 'id' query param
+    const id = searchParams.get('id');
+    const search = searchParams.get("search") || "";
+    const page = parseInt(searchParams.get("page") || "1", 10);
+    const limit = parseInt(searchParams.get("limit") || "10", 10);
 
     if (id) {
       // Validate ID format
@@ -25,9 +28,25 @@ export async function GET(req: NextRequest) {
 
       return NextResponse.json(quest, { status: 200 });
     } else {
-      // Fetch all quests
-      const quests = await Quest.find({});
-      return NextResponse.json(quests, { status: 200 });
+      const searchFilter = search ? { questName: { $regex: search, $options: "i" } } : {};
+      const totalQuests = await Quest.countDocuments(searchFilter);
+
+      const quests = await Quest.find(searchFilter)
+        .skip((page - 1) * limit) // Skip results for pagination
+        .limit(limit) // Limit results for pagination
+        .sort({ createdAt: -1 }); // Optional: sort by creation date, most recent first
+
+      // Return paginated results with metadata
+      return NextResponse.json(
+        {
+          success: true,
+          quests,
+          totalQuests,
+          totalPages: Math.ceil(totalQuests / limit),
+          currentPage: page,
+        },
+        { status: 200 }
+      );
     }
   } catch (error: any) {
     return NextResponse.json({ message: error.message }, { status: 500 });

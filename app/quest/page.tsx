@@ -11,6 +11,7 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import dayjs, { Dayjs } from "dayjs";
 import { useSnackbar } from '@/contexts/snackbar';
+import { useQuestContext } from '@/contexts/quest';
 
 const API_URL = process.env.API_URL || "http://localhost:3000"; // Ensure the correct environment variable
 
@@ -20,6 +21,7 @@ export default function QuestForm(){
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const { mutate: globalMutate } = useSWRConfig();
+  const { searchText, setSearchText, currentPage, setCurrentPage } = useQuestContext();
 
   const { showSnackbar } = useSnackbar();
 
@@ -128,7 +130,7 @@ export default function QuestForm(){
           body: JSON.stringify(submittedData)
         });
 
-        globalMutate(`${API_URL}/api/quests`);
+        globalMutate(`${API_URL}/api/quests?search=${searchText}&page=${currentPage}`);
 
         if (!response.ok) {
           showSnackbar(`Failed to ${questId ? "update" : "create"} quest: ${response.statusText}`, "error");

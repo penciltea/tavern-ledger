@@ -8,6 +8,7 @@ import ModeSwitch from '@/components/mode-switch';
 import { SnackbarProvider } from '@/contexts/snackbar';
 import MainHeader from '@/components/main-header/main-header';
 import QuestListLayout from '@/components/quest-list-layout';
+import { QuestProvider } from '@/contexts/quest';
 
 
 export const metadata: Metadata = {
@@ -23,10 +24,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <AppRouterCacheProvider>
               <ThemeProvider theme={theme}>
                 <CssBaseline />
-                  <MainHeader />
-                  <Container sx={{padding: 2, maxHeight:'60vh', overflow: 'none'}}>
-                    <QuestListLayout>{children}</QuestListLayout>
-                  </Container>
+                <QuestProvider>
+                    <MainHeader />
+                    <Container sx={{padding: 2, maxHeight:'60vh', overflow: 'none'}}>
+                      <QuestListLayout>{children}</QuestListLayout>
+                    </Container>
+                  </QuestProvider>
                 <ModeSwitch />
               </ThemeProvider>
           </AppRouterCacheProvider>
