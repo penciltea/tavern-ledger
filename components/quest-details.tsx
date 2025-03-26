@@ -15,7 +15,10 @@ export default function QuestDetails({ quest }: { quest: Quest }) {
     router.push(`/quest?id=${quest._id}`);
   }, [router, quest._id]);
 
-  const formattedDeadline = dayjs(quest.deadline).format("MMMM D, YYYY h:mm A");
+  let formattedDeadline = "N/A"
+  if(quest.deadline){
+    formattedDeadline = dayjs(quest.deadline).format("MMMM D, YYYY h:mm A");
+  }
 
   const questDetails = [
     { label: "Difficulty", value: quest.difficulty },

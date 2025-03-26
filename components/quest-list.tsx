@@ -6,6 +6,7 @@ import AddIcon from '@mui/icons-material/Add';
 import { useQuestContext } from "@/contexts/quest";
 import type { Quest, QuestList } from '@/components/quest.interface';
 import { useRouter } from "next/navigation";
+import { generateQuestKey } from "@/lib/swrKeys";
 
 const API_URL = process.env.API_URL || "http://localhost:3000"; // Ensure the correct environment variable
 
@@ -15,8 +16,9 @@ export default function QuestList(){
     const { searchText, setSearchText, currentPage, setCurrentPage } = useQuestContext();
 
     const router = useRouter();
-    
-    const { data, error } = useSWR(`${API_URL}/api/quests?search=${searchText}&page=${currentPage}`, fetcher);
+
+    const queryKey = generateQuestKey(searchText, currentPage);   
+    const { data, error } = useSWR(queryKey, fetcher);
 
     const quests = data?.quests || []; // Use an empty array as fallback
     const totalPages = data?.totalPages || 1;
