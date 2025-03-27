@@ -14,6 +14,12 @@ export async function GET(req: NextRequest) {
     const page = parseInt(searchParams.get("page") || "1", 10);
     const limit = parseInt(searchParams.get("limit") || "10", 10);
 
+    // Filters (optional parameters)
+    const status = searchParams.get("status") || "";
+    const difficulty = searchParams.get("difficulty");
+    const questType = searchParams.get("questType");
+    const partyMembers = searchParams.get("partyMembers");
+
     if (id) {
       // Validate ID format
       if (!ObjectId.isValid(id)) {
@@ -28,10 +34,38 @@ export async function GET(req: NextRequest) {
 
       return NextResponse.json(quest, { status: 200 });
     } else {
-      const searchFilter = search ? { questName: { $regex: search, $options: "i" } } : {};
-      const totalQuests = await Quest.countDocuments(searchFilter);
+      // Build dynamic filters
+      const filters: Record<string, any> = {};
 
-      const quests = await Quest.find(searchFilter)
+      // Search by quest name
+      if (search) {
+        filters.questName = { $regex: search, $options: "i" }; // Case-insensitive search
+      }
+
+      // Filter by status
+      if (status) {
+        filters.status = { $in: status.split(",") };  // Split the comma-separated string into an array
+      }
+
+      // Filter by difficulty
+      if (difficulty) {
+        filters.difficulty = difficulty;
+      }
+
+      // Filter by quest type
+      if (questType) {
+        filters.questType = questType;
+      }
+
+      // Filter by party members (case-insensitive match)
+      if (partyMembers) {
+        filters.partyMembers = { $regex: partyMembers, $options: "i" };
+      }
+
+      // Get total count of quests matching the filters
+      const totalQuests = await Quest.countDocuments(filters);
+
+      const quests = await Quest.find(filters)
         .skip((page - 1) * limit) // Skip results for pagination
         .limit(limit) // Limit results for pagination
         .sort({ createdAt: -1 }); // Optional: sort by creation date, most recent first
@@ -80,7 +114,6 @@ export async function PUT(req: NextRequest) {
     
     // Convert id to ObjectId
     const objectId = new ObjectId(id);
-    console.log("Converted ObjectId:", objectId);
     const updatedQuest = await Quest.findByIdAndUpdate(objectId, updatedData, { new: true });
 
     if (!updatedQuest) {

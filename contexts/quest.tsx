@@ -17,6 +17,7 @@ export const QuestProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [currentPage, setCurrentPage] = useState(1);
   const [filters, setFilters] = useState<Record<string, any>>({});
 
+
   return (
     <QuestContext.Provider value={{ searchText, setSearchText, currentPage, setCurrentPage, filters, setFilters }}>
       {children}

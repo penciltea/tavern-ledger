@@ -6,17 +6,18 @@ import AddIcon from '@mui/icons-material/Add';
 import { useQuestContext } from "@/contexts/quest";
 import type { Quest, QuestList } from '@/interfaces/quest.interface';
 import { useRouter } from "next/navigation";
-import { generateQuestKey } from "@/lib/swrKeys";
+import { defaultQuestFilters, generateQuestKey } from "@/lib/swrKeys";
 import FilterDialog from "@/components/filter-dialog";
 
 const fetcher = (url: string) => fetch(url, { method: "GET" }).then((res) => res.json());
 
 export default function QuestList(){
-    const { searchText, setSearchText, currentPage, setCurrentPage } = useQuestContext();
-
     const router = useRouter();
+    const { searchText, setSearchText, currentPage, setCurrentPage, filters, setFilters } = useQuestContext();
+    const queryFilters = { search: searchText, page: currentPage, ...filters };
 
-    const queryKey = generateQuestKey(searchText, currentPage);   
+    const queryKey = generateQuestKey(queryFilters);
+      
     const { data, error } = useSWR(queryKey, fetcher);
 
     const quests = data?.quests || []; // Use an empty array as fallback
@@ -24,7 +25,6 @@ export default function QuestList(){
 
     const [filtersOpen, setFiltersOpen] = useState(false);
     const [filteredQuests, setFilteredQuests] = useState(quests);
-    const [filters, setFilters] = useState({});
     const [isFilterDialogOpen, setFilterDialogOpen] = useState(false);
 
     if(error){ console.log(error); }
@@ -96,23 +96,7 @@ export default function QuestList(){
                             >
                                 Filter
                             </Button>
-                            <TextField
-                                select
-                                label="Sort by"
-                                //value={sort}
-                                //onChange={handleSortChange}
-                                size="small"
-                                sx={{ 
-                                    flex: 1,
-                                    width: 1/2
-                                 }}
-                                >
-                                {['Date Created', 'Name'].map((sortOption) => (
-                                    <MenuItem key={sortOption} value={sortOption}>
-                                    {sortOption}
-                                    </MenuItem>
-                                ))}
-                            </TextField>
+                            
                         </Box>
                     </ListSubheader>
                     {quests.length === 0 ? (

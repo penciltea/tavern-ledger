@@ -99,7 +99,6 @@ export default function QuestForm(){
         deadlineType: value,
         deadline: deadlineOptions[value] || null,
       });
-      console.log(value);
     };
 
     const handleSubmit = async (event: React.FormEvent) => {

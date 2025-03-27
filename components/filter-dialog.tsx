@@ -14,17 +14,18 @@ interface FilterDialogProps {
   
   export default function FilterDialog({ open, onClose, onApply }: FilterDialogProps) {
     const [filters, setFilters] = useState<Filters>({
-        status: [], // Array to allow multi-selection for status
-        difficulty: [], // Array to allow multi-selection
-        questType: [], // Array to allow multi-selection
-        deadline: [], // Array to allow multi-selection
+        //setting each filter to an array for multi-selection
+        status: [],
+        difficulty: [],
+        questType: [],
+        deadline: [],
       });
     
   
       const handleChipToggle = (key: keyof Filters, value: string) => {
         setFilters((prev) => {
-          const currentValues = prev[key] as string[]; // Ensure type safety
-          if (!Array.isArray(currentValues)) return prev; // Only modify array fields
+          const currentValues = prev[key] as string[];
+          if (!Array.isArray(currentValues)) return prev;
           const newValues = currentValues.includes(value)
             ? currentValues.filter((v: string) => v !== value) // Remove if already selected
             : [...currentValues, value]; // Add if not selected
@@ -34,7 +35,7 @@ interface FilterDialogProps {
     
       const handleApply = () => {
         onApply(filters); // Pass the selected filters to the parent
-        onClose(); // Close the dialog
+        onClose();
       };
     
       const handleClear = () => {
@@ -43,7 +44,7 @@ interface FilterDialogProps {
           difficulty: [],
           questType: [],
           deadline: [],
-        }); // Reset all filters
+        });
       };
   
     return (
