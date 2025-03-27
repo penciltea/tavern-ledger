@@ -23,8 +23,10 @@ export default function QuestForm(){
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const { mutate: globalMutate } = useSWRConfig();
-  const { searchText, setSearchText, currentPage, setCurrentPage } = useQuestContext();
-  const queryKey = generateQuestKey(searchText, currentPage);    
+  const { searchText, setSearchText, currentPage, setCurrentPage, filters, setFilters } = useQuestContext();
+  const queryFilters = { search: searchText, page: currentPage, ...filters };
+
+  const queryKey = generateQuestKey(queryFilters); 
 
   const { showSnackbar } = useSnackbar();
 
@@ -132,7 +134,6 @@ export default function QuestForm(){
           body: JSON.stringify(submittedData)
         });
 
-        const queryKey = generateQuestKey(searchText, currentPage)
         globalMutate(queryKey);
 
         if (!response.ok) {
