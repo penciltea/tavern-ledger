@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import QuestDetails from "@/components/quest-details";
-import { Quest } from "@/components/quest.interface";
+import { Quest } from "@/interfaces/quest.interface";
 
 async function getQuest(id: string): Promise<Quest | null> {
   try {

@@ -2,7 +2,7 @@
 import { useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Paper, Typography, Button, Box, Stack, Divider} from "@mui/material";
-import { Quest } from "@/components/quest.interface";
+import { Quest } from "@/interfaces/quest.interface";
 import dayjs from "dayjs";
 import { useSnackbar } from "@/contexts/snackbar";
 

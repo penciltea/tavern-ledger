@@ -13,6 +13,7 @@ import dayjs, { Dayjs } from "dayjs";
 import { useSnackbar } from '@/contexts/snackbar';
 import { useQuestContext } from '@/contexts/quest';
 import { generateQuestKey } from '@/lib/swrKeys';
+import { QUEST_STATUS, QUEST_DIFFICULTY, QUEST_TYPE } from "@/constants/quest.constants";
 
 const API_URL = process.env.API_URL || "http://localhost:3000"; // Ensure the correct environment variable
 
@@ -195,10 +196,9 @@ export default function QuestForm(){
               <FormControl fullWidth margin="normal" required>
                 <InputLabel>Quest Status</InputLabel>
                 <Select name="questStatus" value={formData.status} onChange={(event) => handleInputChange('status', event.target.value || null)}>
-                  <MenuItem value="Not Started">Not Started</MenuItem>
-                  <MenuItem value="In Progress">In Progress</MenuItem>
-                  <MenuItem value="Completed">Completed</MenuItem>
-                  <MenuItem value="Failed">Failed</MenuItem>
+                  {QUEST_STATUS.map((status) => (
+                      <MenuItem key={status} value={status}>{status}</MenuItem>
+                  ))}
                 </Select>
               </FormControl>
             </Box>
@@ -213,10 +213,9 @@ export default function QuestForm(){
                 <FormControl fullWidth margin="normal">
                   <InputLabel>Difficulty Level</InputLabel>
                   <Select name="difficulty" value={formData.difficulty ?? ""} onChange={(event) => handleInputChange('difficulty', event.target.value || null)}>
-                    <MenuItem value="Easy">Easy</MenuItem>
-                    <MenuItem value="Normal">Normal</MenuItem>
-                    <MenuItem value="Hard">Hard</MenuItem>
-                    <MenuItem value="Legendary">Legendary</MenuItem>
+                    {QUEST_DIFFICULTY.map((difficulty) => (
+                        <MenuItem key={difficulty} value={difficulty}>{difficulty}</MenuItem>
+                    ))}
                   </Select>
                 </FormControl>
               
@@ -226,7 +225,7 @@ export default function QuestForm(){
                   <Select name="questType" value={formData.questType ?? "" } onChange={(event) => handleInputChange('questType', event.target.value || null)}>
                     <MenuItem value="Main Quest">Main Quest (Critical task)</MenuItem>
                     <MenuItem value="Side Quest">Side Quest (Optional but useful)</MenuItem>
-                    <MenuItem value="Bounty">Bounty (Time-limited)</MenuItem>
+                    <MenuItem value="Bounty">Bounty (Time-sensitive)</MenuItem>
                     <MenuItem value="Dungeon Raid">Dungeon Raid (Group effort)</MenuItem>
                   </Select>
                 </FormControl>

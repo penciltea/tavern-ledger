@@ -1,16 +1,17 @@
 import mongoose from 'mongoose';
 import { Document, Types } from 'mongoose';
+import { QuestStatus, QuestDifficulty, QuestType, QUEST_STATUS, QUEST_DIFFICULTY, QUEST_TYPE } from "@/constants/quest.constants";
 const { Schema } = mongoose;
 
 export interface IQuest extends Document {
     _id: Types.ObjectId;
     questName: string;
     description: string;
-    status: 'Not Started' | 'In Progress' | 'Completed' | 'Failed';
-    difficulty: 'Easy' | 'Normal' | 'Hard' | 'Legendary';
+    status: QuestStatus;
+    difficulty: QuestDifficulty;
     deadlineType: 'none' | 'tomorrow' | 'threeDays' | 'oneWeek' | 'oneMonth' | 'custom';
     deadline: Date;
-    questType: 'Main Quest' | 'Side Quest' | 'Bounty' | 'Dungeon Raid';
+    questType: QuestType;
     reward: String,
     location: String,
     questGiver: String,
@@ -25,13 +26,13 @@ export interface IQuest extends Document {
       description: { type: String, required: true },
       status: { 
         type: String, 
-        enum: ['Not Started', 'In Progress', 'Completed', 'Failed'], 
+        enum: QUEST_STATUS, 
         default: 'Not Started',
         required: false
       },
       difficulty: {
         type: String,
-        enum: ['Easy', 'Normal', 'Hard', 'Legendary'],
+        enum: QUEST_DIFFICULTY,
         default: 'Easy', 
         required: false
       },
@@ -44,7 +45,7 @@ export interface IQuest extends Document {
       deadline: {type: Date, default: null, required: false},
       questType: {
         type: String,
-        enum: ['Main Quest', 'Side Quest', 'Bounty', 'Dungeon Raid'],
+        enum: QUEST_TYPE,
         default: 'Side Quest',
         required: false
       },
